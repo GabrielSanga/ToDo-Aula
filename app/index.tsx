@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Modal, StyleSheet, Task, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Tarefa } from '../src/types/Tarefa';
-import TaskItem from '../src/components/TaskItem';
+import TaskItem from '../src/components/TarefaItem';
 
 export default function App() {
   const [tarefas, setTarefas] = useState<Tarefa[]>([
@@ -12,18 +12,33 @@ export default function App() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [novaTarefa, setNovaTarefa] = useState('');
 
-  function addTask() {
+  function adicionarTarefa() {
     if (!novaTarefa.trim()) return;
 
-    const task = {
+    const tarefa: Tarefa = {
       id: Date.now().toString(),
       titulo: novaTarefa,
       completa: false
     };
 
-    setTarefas([...tarefas, task]);
+    setTarefas(prev => [...prev, tarefa]);
     setNovaTarefa('');
     setMostrarModal(false);
+  }
+
+  function removeTarefa(id: string) {
+    setTarefas((prev) =>
+      prev.filter((tarefa) => tarefa.id !== id)
+    );  
+  }
+
+  function confirmeTarefa(id: string) {
+    const updated = tarefas.map(tarefa =>
+      tarefa.id === id
+        ? { ...tarefa, completa: !tarefa.completa }
+        : tarefa
+    );
+    setTarefas(updated);
   }
   
   return (
@@ -40,7 +55,7 @@ export default function App() {
           data={tarefas}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <TaskItem Tarefa={item}/>
+            <TaskItem Tarefa={item} onRemover={() => removeTarefa(item.id)} onCofirmar={() => confirmeTarefa(item.id)} />
           )}
           ListEmptyComponent={
             <Text>
@@ -65,7 +80,7 @@ export default function App() {
 
             <TextInput placeholder="Digite a tarefa..." value={novaTarefa} onChangeText={setNovaTarefa} style={styles.input}/>
 
-            <TouchableOpacity style={styles.saveButton} onPress={addTask}>
+            <TouchableOpacity style={styles.saveButton} onPress={adicionarTarefa}>
               <Text style={styles.saveButtonText}>Salvar</Text>
             </TouchableOpacity>
 
@@ -101,7 +116,7 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: 'center'
   },
-    addButton: {
+  addButton: {
     width: 60,
     height: 60,
     borderRadius: 30,
