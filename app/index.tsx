@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Tarefa } from '../src/types/Tarefa';
 
 export default function App() {
@@ -8,6 +8,22 @@ export default function App() {
     { id: '2', titulo: 'Fazer exercícios', completa: true },
     { id: '3', titulo: 'Ler documentação', completa: false },
   ]);
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [novaTarefa, setNovaTarefa] = useState('');
+
+  function addTask() {
+    if (!novaTarefa.trim()) return;
+
+    const task = {
+      id: Date.now().toString(),
+      titulo: novaTarefa,
+      completa: false
+    };
+
+    setTarefas([...tarefas, task]);
+    setNovaTarefa('');
+    setMostrarModal(false);
+  }
   
   return (
     <View style={styles.container}>
@@ -35,10 +51,30 @@ export default function App() {
 
       {/* FOOTER */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.addButton}>
+        <TouchableOpacity style={styles.addButton} onPress={() => setMostrarModal(true)}>
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
       </View>
+
+       {/* MODAL */}
+      <Modal visible={mostrarModal} transparent animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Nova Tarefa</Text>
+
+            <TextInput placeholder="Digite a tarefa..." value={novaTarefa} onChangeText={setNovaTarefa} style={styles.input}/>
+
+            <TouchableOpacity style={styles.saveButton} onPress={addTask}>
+              <Text style={styles.saveButtonText}>Salvar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.cancelarButton} onPress={() => setMostrarModal(false)}>
+              <Text style={styles.cancelarButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      
     </View>
   );
 }
@@ -75,5 +111,47 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#fff',
     fontSize: 30
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)'
+  },
+  modalContent: {
+    margin: 20,
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10
+  },
+  modalTitle: {
+    fontSize: 18,
+    marginBottom: 10
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    borderRadius: 5
+  },
+  saveButton: {
+    backgroundColor: '#28a745',
+    padding: 10,
+    marginTop: 10,
+    borderRadius: 5,
+    alignItems: 'center'
+  },
+  saveButtonText: {
+    color: '#fff'
+  },
+  cancelarButton: {
+    backgroundColor: '#dc3545',
+    padding: 10,
+    marginTop: 10,
+    borderRadius: 5,
+    alignItems: 'center'
+  },
+  cancelarButtonText: {
+    color: '#fff'
   }
+
 });
