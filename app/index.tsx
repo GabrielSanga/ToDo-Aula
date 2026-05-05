@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Tarefa } from '../src/types/Tarefa';
+import TaskItem from '../src/components/TaskItem';
 
 export default function App() {
   const [tarefas, setTarefas] = useState<Tarefa[]>([
@@ -39,7 +40,7 @@ export default function App() {
           data={tarefas}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <Text>{item.titulo}</Text>
+            <TaskItem Tarefa={item}/>
           )}
           ListEmptyComponent={
             <Text>
@@ -74,7 +75,7 @@ export default function App() {
           </View>
         </View>
       </Modal>
-      
+
     </View>
   );
 }
