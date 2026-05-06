@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { Tarefa } from '../src/types/Tarefa';
 import TaskItem from '../src/components/TarefaItem';
 
@@ -43,7 +43,10 @@ export default function App() {
   }
 
   function removeTarefa(id: string) {
-    setTarefas((prev) => prev.filter((tarefa) => tarefa.id !== id));
+    Alert.alert("Confirmar", "Deseja remover?", [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Remover", style: "destructive", onPress: () => setTarefas((prev) => prev.filter((tarefa) => tarefa.id !== id)) }
+    ]);
   }
 
   function confirmeTarefa(id: string) {
@@ -93,7 +96,7 @@ export default function App() {
           contentContainerStyle={tarefasFiltradas.length === 0 ? styles.emptyList : styles.listContent}
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>Nenhuma tarefa cadastrada</Text>
+              <Text style={styles.emptyText}>{filtro === 'pendentes' ? 'Nenhuma tarefa pendente' : filtro === 'concluidas' ?  'Nenhuma tarefa concluída'  : 'Nenhuma tarefa cadastrada'}</Text>
               <Text style={styles.emptySubtext}>Adicione uma tarefa usando o botão abaixo.</Text>
             </View>
           }
