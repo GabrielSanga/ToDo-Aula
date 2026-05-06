@@ -1,68 +1,88 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { Tarefa } from "../types/Tarefa";
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Tarefa } from '../types/Tarefa';
 
-export default function TaskItem({ Tarefa, onRemover, onCofirmar }: { Tarefa: Tarefa; onRemover: () => void; onCofirmar: () => void }) {
-    return(
-        <TouchableOpacity style={styles.container} onPress={() => onCofirmar()}>
-            <View style={styles.taskInfo}>
-              <View style={[styles.checkbox, Tarefa.completa && styles.checked]} />
-              <Text style={[styles.text, Tarefa.completa && styles.completedText]}>{Tarefa.titulo}</Text>
-            </View>
+export default function TaskItem({ tarefa, onRemover, onConfirmar }: { tarefa: Tarefa; onRemover: () => void; onConfirmar: () => void }) {
+  return (
+    <TouchableOpacity style={styles.container} activeOpacity={0.85} onPress={onConfirmar}>
+      <View style={styles.taskInfo}>
+        <View style={[styles.checkbox, tarefa.completa && styles.checked]}>
+          {tarefa.completa && <Text style={styles.checkmark}>✓</Text>}
+        </View>
+        <Text style={[styles.text, tarefa.completa && styles.completedText]}>{tarefa.titulo}</Text>
+      </View>
 
-            <TouchableOpacity style={styles.deleteButton} onPress={onRemover}>
-              <Text style={styles.deleteButtonText}>x</Text>
-            </TouchableOpacity>
-        </TouchableOpacity>
-    );
-}   
+      <TouchableOpacity style={styles.deleteButton} onPress={onRemover} activeOpacity={0.7}>
+        <Text style={styles.deleteButtonText}>✕</Text>
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 10
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 20,
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 16,
+    elevation: 6,
   },
 
   taskInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1
+    flex: 1,
   },
 
   checkbox: {
-    width: 20,
-    height: 20,
+    width: 26,
+    height: 26,
     borderWidth: 2,
-    borderColor: '#333',
-    marginRight: 10
+    borderColor: '#c7d2fe',
+    borderRadius: 10,
+    marginRight: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   checked: {
-    backgroundColor: '#28a745'
+    backgroundColor: '#7c3aed',
+    borderColor: '#7c3aed',
+  },
+
+  checkmark: {
+    color: '#ffffff',
+    fontWeight: '700',
   },
 
   text: {
     fontSize: 16,
-    flexShrink: 1
+    color: '#111827',
+    flexShrink: 1,
   },
 
   completedText: {
     textDecorationLine: 'line-through',
-    color: '#999'
+    color: '#9ca3af',
   },
 
   deleteButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 2,
-    backgroundColor: '#b9323f',
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#fb7185',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
 
   deleteButtonText: {
-    color: '#fff',
-    fontWeight: 'bold'
-  }
+    color: '#ffffff',
+    fontWeight: '700',
+  },
 });
