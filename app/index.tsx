@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Alert, FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { Tarefa } from '../src/types/Tarefa';
 import TaskItem from '../src/components/TarefaItem';
+import { TarefaService } from '../src/services/TarefaService';
 
 export default function App() {
   const [tarefas, setTarefas] = useState<Tarefa[]>([
@@ -14,46 +15,47 @@ export default function App() {
   const [filtro, setFiltro] = useState<'todos' | 'concluidas' | 'pendentes'>('todos');
 
   const tarefasCompletas = useMemo(
-    () => tarefas.filter((tarefa) => tarefa.completa).length,
+    () => TarefaService.contarTarefasCompletas(tarefas),
     [tarefas]
   );
 
-  const tarefasFiltradas = useMemo(() => {
-    if (filtro === 'concluidas') {
-      return tarefas.filter((tarefa) => tarefa.completa);
-    }
-    if (filtro === 'pendentes') {
-      return tarefas.filter((tarefa) => !tarefa.completa);
-    }
-    return tarefas;
-  }, [tarefas, filtro]);
+  const tarefasFiltradas = useMemo(
+    () => TarefaService.filtrarTarefas(tarefas, filtro),
+    [tarefas, filtro]
+  );
 
   function adicionarTarefa() {
-    if (!novaTarefa.trim()) return;
-
-    const tarefa: Tarefa = {
-      id: Date.now().toString(),
-      titulo: novaTarefa,
-      completa: false,
-    };
-
-    setTarefas((prev) => [...prev, tarefa]);
-    setNovaTarefa('');
-    setMostrarModal(false);
+    try {
+      const novasTarefas = TarefaService.adicionarTarefa(tarefas, novaTarefa);
+      setTarefas(novasTarefas);
+      setNovaTarefa('');
+      setMostrarModal(false);
+    } catch (error) {
+      if (error instanceof Error) {
+        Alert.alert('Erro', error.message);
+      } else {
+        Alert.alert('Erro', 'Ocorreu um erro inesperado');
+      }    
+    }
   }
 
   function removeTarefa(id: string) {
     Alert.alert("Confirmar", "Deseja remover?", [
       { text: "Cancelar", style: "cancel" },
-      { text: "Remover", style: "destructive", onPress: () => setTarefas((prev) => prev.filter((tarefa) => tarefa.id !== id)) }
+      { 
+        text: "Remover", 
+        style: "destructive", 
+        onPress: () => {
+          const novasTarefas = TarefaService.removerTarefa(tarefas, id);
+          setTarefas(novasTarefas);
+        }
+      }
     ]);
   }
 
   function confirmeTarefa(id: string) {
-    const updated = tarefas.map((tarefa) =>
-      tarefa.id === id ? { ...tarefa, completa: !tarefa.completa } : tarefa
-    );
-    setTarefas(updated);
+    const novasTarefas = TarefaService.alternarStatusTarefa(tarefas, id);
+    setTarefas(novasTarefas);
   }
 
   return (
