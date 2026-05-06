@@ -11,11 +11,22 @@ export default function App() {
   ]);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [novaTarefa, setNovaTarefa] = useState('');
+  const [filtro, setFiltro] = useState<'todos' | 'concluidas' | 'pendentes'>('todos');
 
   const tarefasCompletas = useMemo(
     () => tarefas.filter((tarefa) => tarefa.completa).length,
     [tarefas]
   );
+
+  const tarefasFiltradas = useMemo(() => {
+    if (filtro === 'concluidas') {
+      return tarefas.filter((tarefa) => tarefa.completa);
+    }
+    if (filtro === 'pendentes') {
+      return tarefas.filter((tarefa) => !tarefa.completa);
+    }
+    return tarefas;
+  }, [tarefas, filtro]);
 
   function adicionarTarefa() {
     if (!novaTarefa.trim()) return;
@@ -58,16 +69,28 @@ export default function App() {
             <Text style={styles.statValue}>{tarefasCompletas}</Text>
           </View>
         </View>
+
+        <View style={styles.filterRow}>
+          <TouchableOpacity style={[styles.filterButton, filtro === 'todos' && styles.filterButtonActive]} onPress={() => setFiltro('todos')}>
+            <Text style={[styles.filterText, filtro === 'todos' && styles.filterTextActive]}>Todas</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.filterButton, filtro === 'pendentes' && styles.filterButtonActive]} onPress={() => setFiltro('pendentes')}>
+            <Text style={[styles.filterText, filtro === 'pendentes' && styles.filterTextActive]}>Pendentes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.filterButton, filtro === 'concluidas' && styles.filterButtonActive]} onPress={() => setFiltro('concluidas')}>
+            <Text style={[styles.filterText, filtro === 'concluidas' && styles.filterTextActive]}>Concluídas</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.body}>
         <FlatList
-          data={tarefas}
+          data={tarefasFiltradas}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TaskItem tarefa={item} onRemover={() => removeTarefa(item.id)} onConfirmar={() => confirmeTarefa(item.id)} />
           )}
-          contentContainerStyle={tarefas.length === 0 ? styles.emptyList : styles.listContent}
+          contentContainerStyle={tarefasFiltradas.length === 0 ? styles.emptyList : styles.listContent}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Text style={styles.emptyText}>Nenhuma tarefa cadastrada</Text>
@@ -196,6 +219,32 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     textAlign: 'center',
     maxWidth: 260,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 18,
+    gap: 10,
+  },
+  filterButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    alignItems: 'center',
+  },
+  filterButtonActive: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#8b5cf6',
+  },
+  filterText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#d8b4fe',
+  },
+  filterTextActive: {
+    color: '#4c1d95',
   },
   footer: {
     position: 'absolute',
