@@ -8,14 +8,9 @@ import { TarefaService } from '../src/services/TarefaService';
 export default function App() {
   const router = useRouter();
   const { novoTitulo } = useLocalSearchParams<{ novoTitulo?: string }>();
-
-  const [tarefas, setTarefas] = useState<Tarefa[]>([
-    { id: '1', titulo: 'Estudar React Native', completa: false },
-    { id: '2', titulo: 'Fazer exercícios', completa: true },
-    { id: '3', titulo: 'Ler documentação', completa: false },
-  ]);
+  const [tarefas, setTarefas] = useState<Tarefa[]>([]);
   const [filtro, setFiltro] = useState<'todos' | 'concluidas' | 'pendentes'>('todos');
-
+  
   const tarefasCompletas = useMemo(
     () => TarefaService.contarTarefasCompletas(tarefas),
     [tarefas]
@@ -25,6 +20,10 @@ export default function App() {
     () => TarefaService.filtrarTarefas(tarefas, filtro),
     [tarefas, filtro]
   );
+
+  useEffect(() => {
+    setTarefas(TarefaService.buscarTodas());
+  }, []);
 
   function adicionarTarefa() {
     if (!novoTitulo) {
@@ -47,23 +46,21 @@ export default function App() {
      adicionarTarefa()
   }, [novoTitulo]);
 
-  function confirmarRemocao(id: string) {
+  function confirmarRemocao(id: number) {
     Alert.alert('Confirmar', 'Deseja remover?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Remover',
         style: 'destructive',
         onPress: () => {
-          const novasTarefas = TarefaService.removerTarefa(tarefas, id);
-          setTarefas(novasTarefas);
+          setTarefas((current) => TarefaService.removerTarefa(current, id));
         },
       },
     ]);
   }
 
-  function confirmeTarefa(id: string) {
-    const novasTarefas = TarefaService.alternarStatusTarefa(tarefas, id);
-    setTarefas(novasTarefas);
+  function confirmeTarefa(id: number) {
+    setTarefas((current) => TarefaService.alternarStatusTarefa(current, id));
   }
 
   return (
@@ -99,7 +96,7 @@ export default function App() {
       <View style={styles.body}>
         <FlatList
           data={tarefasFiltradas}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <TaskItem tarefa={item} onRemover={() => confirmarRemocao(item.id)} onConfirmar={() => confirmeTarefa(item.id)} />
           )}

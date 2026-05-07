@@ -1,29 +1,36 @@
 import { Tarefa } from '../types/Tarefa';
+import { TarefaRepository } from '../database/TarefaRepository';
 
 export class TarefaService {
+
+  static buscarTodas(): Tarefa[] {
+    return TarefaRepository.buscar();
+  }
 
   static adicionarTarefa(tarefas: Tarefa[], titulo: string): Tarefa[] {
     if (!titulo.trim()) {
       throw new Error('Título da tarefa não pode estar vazio');
     }
 
-    const novaTarefa: Tarefa = {
-      id: Date.now().toString(),
-      titulo: titulo.trim(),
-      completa: false,
-    };
+    const novaTarefa = TarefaRepository.adicionar(titulo.trim(), false);
 
     return [...tarefas, novaTarefa];
   }
 
-  static removerTarefa(tarefas: Tarefa[], id: string): Tarefa[] {
+  static removerTarefa(tarefas: Tarefa[], id: number): Tarefa[] {
+    TarefaRepository.remover(id);
     return tarefas.filter((tarefa) => tarefa.id !== id);
   }
 
-  static alternarStatusTarefa(tarefas: Tarefa[], id: string): Tarefa[] {
-    return tarefas.map((tarefa) =>
+  static alternarStatusTarefa(tarefas: Tarefa[], id: number): Tarefa[] {
+    const novasTarefas = tarefas.map((tarefa) =>
       tarefa.id === id ? { ...tarefa, completa: !tarefa.completa } : tarefa
     );
+    const tarefaAtualizada = novasTarefas.find(t => t.id === id);
+    if (tarefaAtualizada) {
+      TarefaRepository.atualizarConfirma(id, tarefaAtualizada.completa);
+    }
+    return novasTarefas;
   }
 
   static filtrarTarefas(tarefas: Tarefa[], filtro: 'todos' | 'concluidas' | 'pendentes'): Tarefa[] {
