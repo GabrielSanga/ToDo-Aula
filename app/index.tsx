@@ -1,17 +1,19 @@
-import { useMemo, useState } from 'react';
-import { Alert, FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Tarefa } from '../src/types/Tarefa';
 import TaskItem from '../src/components/TarefaItem';
 import { TarefaService } from '../src/services/TarefaService';
 
 export default function App() {
+  const router = useRouter();
+  const { novoTitulo } = useLocalSearchParams<{ novoTitulo?: string }>();
+
   const [tarefas, setTarefas] = useState<Tarefa[]>([
     { id: '1', titulo: 'Estudar React Native', completa: false },
     { id: '2', titulo: 'Fazer exercícios', completa: true },
     { id: '3', titulo: 'Ler documentação', completa: false },
   ]);
-  const [mostrarModal, setMostrarModal] = useState(false);
-  const [novaTarefa, setNovaTarefa] = useState('');
   const [filtro, setFiltro] = useState<'todos' | 'concluidas' | 'pendentes'>('todos');
 
   const tarefasCompletas = useMemo(
@@ -25,31 +27,37 @@ export default function App() {
   );
 
   function adicionarTarefa() {
+    if (!novoTitulo) {
+      return;
+    }
+
     try {
-      const novasTarefas = TarefaService.adicionarTarefa(tarefas, novaTarefa);
-      setTarefas(novasTarefas);
-      setNovaTarefa('');
-      setMostrarModal(false);
+      setTarefas((current) => TarefaService.adicionarTarefa(current, novoTitulo));
+      router.replace('/');
     } catch (error) {
       if (error instanceof Error) {
         Alert.alert('Erro', error.message);
       } else {
         Alert.alert('Erro', 'Ocorreu um erro inesperado');
-      }    
+      }
     }
   }
 
-  function removeTarefa(id: string) {
-    Alert.alert("Confirmar", "Deseja remover?", [
-      { text: "Cancelar", style: "cancel" },
-      { 
-        text: "Remover", 
-        style: "destructive", 
+  useEffect(() => {
+     adicionarTarefa()
+  }, [novoTitulo]);
+
+  function confirmarRemocao(id: string) {
+    Alert.alert('Confirmar', 'Deseja remover?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Remover',
+        style: 'destructive',
         onPress: () => {
           const novasTarefas = TarefaService.removerTarefa(tarefas, id);
           setTarefas(novasTarefas);
-        }
-      }
+        },
+      },
     ]);
   }
 
@@ -93,7 +101,7 @@ export default function App() {
           data={tarefasFiltradas}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <TaskItem tarefa={item} onRemover={() => removeTarefa(item.id)} onConfirmar={() => confirmeTarefa(item.id)} />
+            <TaskItem tarefa={item} onRemover={() => confirmarRemocao(item.id)} onConfirmar={() => confirmeTarefa(item.id)} />
           )}
           contentContainerStyle={tarefasFiltradas.length === 0 ? styles.emptyList : styles.listContent}
           ListEmptyComponent={
@@ -106,40 +114,10 @@ export default function App() {
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.addButton} onPress={() => setMostrarModal(true)}>
+        <TouchableOpacity style={styles.addButton} onPress={() => router.push('create')}>
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
       </View>
-
-      <Modal visible={mostrarModal} transparent animationType="slide">
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.modalContainer}>
-            <KeyboardAvoidingView
-              style={styles.modalContent}
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            >
-              <Text style={styles.modalTitle}>Nova tarefa</Text>
-              <Text style={styles.modalSubtitle}>Escreva a tarefa que deseja adicionar.</Text>
-
-              <TextInput
-                placeholder="Digite a tarefa..."
-                value={novaTarefa}
-                onChangeText={setNovaTarefa}
-                style={styles.input}
-                placeholderTextColor="#9ca3af"
-              />
-
-              <TouchableOpacity style={styles.saveButton} onPress={adicionarTarefa}>
-                <Text style={styles.saveButtonText}>Salvar</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setMostrarModal(false)}>
-                <Text style={styles.cancelButtonText}>Cancelar</Text>
-              </TouchableOpacity>
-            </KeyboardAvoidingView>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
     </View>
   );
 }
